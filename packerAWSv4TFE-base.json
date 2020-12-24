@@ -1,0 +1,55 @@
+{
+  "description": "packer centos7 AWS-based CIS-conformant base image",
+  "min_packer_version": "1.4.4",
+  "variables": {
+    "aws_region": "eu-west-2"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "ami_name": "packerAWSv4TFEbase",
+      "region": "{{user `aws_region`}}",
+      "source_ami": "ami-014421cd4f0b31645",
+      "ami_description": "packer centos7 AWS-based CIS-conformant base image",
+      "force_deregister": true,
+      "force_delete_snapshot": true,
+      "encrypt_boot": true,
+      "kms_key_id": "",
+      "associate_public_ip_address": true,
+      "instance_type": "t2.micro",
+      "ssh_username": "ubuntu",
+      "ssh_keypair_name": "id_rsa_packer",
+      "ssh_private_key_file": "~/.ssh/id_rsa_packer",
+      "shutdown_behavior": "terminate",
+      "tags": {
+          "environment": "build",
+          "function": "AWS-TFE"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": ["while [ ! -f /var/lib/cloud/instance/boot-finished ]; do echo 'Waiting for cloud-init...'; sleep 1; done"]
+    },
+    {
+      "type": "shell",
+      "inline": ["mkdir -pm 0755 /var/tmp/tfe"]
+    },
+    {
+      "type": "file",
+      "source": "tfe.airgap",
+      "destination": "/var/tmp/tfe/tfe.airgap"
+		},
+    {
+      "type": "file",
+      "source": "hashicorp-employee-lewis-v4.rli",
+      "destination": "/var/tmp/tfe/hashicorp-employee-lewis-v4.rli"
+		},
+    {
+      "type": "file",
+      "source": "replicated.tar.gz",
+      "destination": "/var/tmp/tfe/replicated.tar.gz"
+    }
+	]
+}
